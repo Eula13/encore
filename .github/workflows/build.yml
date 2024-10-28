@@ -58,19 +58,11 @@ jobs:
         bash $GITHUB_WORKSPACE/.github/scripts/cr_sha256.sh ./module/toast.apk
         bash $GITHUB_WORKSPACE/.github/scripts/cr_sha256.sh ./module/module.prop
         cd ./module && zip -r9 ../$zipName * -x *placeholder* *.map
-    - name: Upload to telegram
+
+    - name: Upload to GitHub Releases
+      uses: softprops/action-gh-release@v1
+      with:
+        tag: ${{ github.ref }}
+        files: ${{ steps.compileZip.outputs.zipName }}
       env:
-        CHAT_ID: ${{ secrets.CHAT_ID }}
-        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-        COMMIT_URL: ${{ github.event.head_commit.url }}
-        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        TITLE: Encore Tweaks
-      run: |
-        if [ ! -z "${{ secrets.CHAT_ID }}" ] && [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
-          export VERSION=$(git rev-list --count HEAD)
-          bash $GITHUB_WORKSPACE/.github/scripts/telegram_bot.sh $GITHUB_WORKSPACE/${{ steps.compileZip.outputs.zipName }}
-        else
-          echo "Telegram bot token is undefined, please add it to repository secrets!"
-          exit 1
-        fi
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
